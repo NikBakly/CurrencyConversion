@@ -1,17 +1,18 @@
 package org.example.dao;
 
+import org.example.dto.ExchangeRateDto;
 import org.example.model.ExchangeRate;
 
 import java.util.List;
 
 public class ExchangeRateDaoImpl implements ExchangeRateDao {
     @Override
-    public void create(ExchangeRate exchangeRate) {
+    public void create(ExchangeRateDto exchangeRateDto) {
 
     }
 
     @Override
-    public void updateById(Integer id, ExchangeRate exchangeRate) {
+    public void updateById(Integer id, ExchangeRateDto exchangeRateDto) {
 
     }
 
