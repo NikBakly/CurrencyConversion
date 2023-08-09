@@ -1,9 +1,9 @@
 create table if not exists currencies
 (
     id        integer primary key autoincrement,
-    code      varchar(255),
-    full_name varchar(255),
-    sign      varchar(4)
+    code      varchar(255) unique,
+    full_name varchar(255) unique,
+    sign      varchar(4) unique
 );
 
 
