@@ -10,7 +10,7 @@ public interface CurrencyDao {
 
     void updateById(Integer id, CurrencyDto currencyDto);
 
-    Currency getByCode(String code);
+    Currency getCurrencyByCode(String code);
 
     List<Currency> getAll();
 
