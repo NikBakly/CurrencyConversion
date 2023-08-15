@@ -12,6 +12,8 @@ public interface CurrencyDao {
 
     Currency getCurrencyByCode(String code);
 
+    Currency getCurrencyById(Integer id);
+
     List<Currency> getAll();
 
     void deleteById(Integer id);

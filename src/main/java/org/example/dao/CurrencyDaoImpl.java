@@ -15,7 +15,6 @@ import java.util.List;
 
 public class CurrencyDaoImpl implements CurrencyDao {
     private static final CurrencyDaoImpl INSTANCE = new CurrencyDaoImpl();
-
     private static final Logger logger = LoggerFactory.getLogger(CurrencyDaoImpl.class);
 
     private CurrencyDaoImpl() {
@@ -88,6 +87,34 @@ public class CurrencyDaoImpl implements CurrencyDao {
             return foundCurrency;
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when searching for a currency by code");
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Currency getCurrencyById(Integer id) {
+        String getByCodeQuery = "SELECT * FROM currencies WHERE id = ?";
+        Currency foundCurrency;
+
+        try (Connection connection = DatabaseConnector.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(getByCodeQuery)) {
+            preparedStatement.setInt(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                foundCurrency = new Currency(
+                        id,
+                        resultSet.getString("full_name"),
+                        resultSet.getString("code"),
+                        resultSet.getString("sign"));
+                logger.debug("Currency with id={} successfully found", id);
+            } else {
+                logger.debug("Currency with id={} not found", id);
+                throw new RuntimeException(String.format("Currency with id=%d not found", id));
+            }
+            return foundCurrency;
+        } catch (SQLException | ClassNotFoundException e) {
+            logger.error("Error when searching for a currency by id");
             throw new RuntimeException(e);
         }
     }
