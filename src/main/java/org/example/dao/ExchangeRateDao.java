@@ -10,7 +10,9 @@ public interface ExchangeRateDao {
 
     void updateById(Integer id, ExchangeRateDto exchangeRateDto);
 
-    ExchangeRate getByCode(String code);
+    ExchangeRate getByCodes(String codes);
+
+    ExchangeRate getById(Integer id);
 
     List<ExchangeRate> getAll();
 

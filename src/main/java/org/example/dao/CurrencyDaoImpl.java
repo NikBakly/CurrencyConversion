@@ -3,6 +3,8 @@ package org.example.dao;
 import org.example.DatabaseConnector;
 import org.example.dto.CurrencyDto;
 import org.example.model.Currency;
+import org.example.model.exception.InternalServerErrorException;
+import org.example.model.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +27,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void create(CurrencyDto currencyDto) {
+    public void create(CurrencyDto currencyDto) throws RuntimeException {
         String insertQuery = "INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)";
         try (Connection connection = DatabaseConnector.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -38,12 +40,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when creating currency");
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
-    public void updateById(Integer id, CurrencyDto currencyDto) {
+    public void updateById(Integer id, CurrencyDto currencyDto) throws RuntimeException {
+
+
         String updateQuery = "UPDATE currencies SET code = ?, full_name = ?, sign = ? WHERE id = ?";
         try (Connection connection = DatabaseConnector.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -64,7 +68,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public Currency getCurrencyByCode(String code) {
+    public Currency getCurrencyByCode(String code) throws RuntimeException {
         String getByCodeQuery = "SELECT * FROM currencies WHERE code = ?";
         Currency foundCurrency;
 
@@ -82,17 +86,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 logger.debug("Currency with code={} successfully found", code);
             } else {
                 logger.debug("Currency with code={} not found", code);
-                throw new RuntimeException(String.format("Currency with code=%s not found", code));
+                throw new NotFoundException(String.format("Currency with code=%s not found", code));
             }
             return foundCurrency;
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when searching for a currency by code");
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
-    public Currency getCurrencyById(Integer id) {
+    public Currency getCurrencyById(Integer id) throws RuntimeException {
         String getByCodeQuery = "SELECT * FROM currencies WHERE id = ?";
         Currency foundCurrency;
 
@@ -110,17 +114,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 logger.debug("Currency with id={} successfully found", id);
             } else {
                 logger.debug("Currency with id={} not found", id);
-                throw new RuntimeException(String.format("Currency with id=%d not found", id));
+                throw new NotFoundException(String.format("Currency with id=%d not found", id));
             }
             return foundCurrency;
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when searching for a currency by id");
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
-    public List<Currency> getAll() {
+    public List<Currency> getAll() throws RuntimeException {
         String getByCodeQuery = "SELECT * FROM currencies";
         List<Currency> foundCurrencies = new ArrayList<>();
 
@@ -137,7 +141,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             logger.debug("All currencies found");
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when searching for a currency. Error message: {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e);
         }
         return foundCurrencies;
     }
@@ -152,9 +156,9 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 preparedExchangeRateStatement.setInt(1, id);
                 preparedExchangeRateStatement.setInt(2, id);
                 preparedExchangeRateStatement.executeQuery();
-
             } catch (SQLException e) {
                 logger.error("Error when deleting currency from exchangeRate");
+                throw new InternalServerErrorException("Error when deleting currency from exchangeRate");
             }
 
             try (PreparedStatement preparedCurrencyStatement = connection.prepareStatement(deleteCurrencyByIdQuery)) {
@@ -164,12 +168,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
                     logger.debug("Currency with id={} deleted successfully", id);
                 } else {
                     logger.debug("Failed to delete currency with id={}", id);
-                    throw new RuntimeException(String.format("Failed to delete currency with id=%d", id));
+                    throw new NotFoundException(String.format("Failed to delete currency with id=%d", id));
                 }
             }
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when deleting currency");
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 }
