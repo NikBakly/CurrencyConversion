@@ -5,15 +5,14 @@ import org.example.ObjectMapperSingleton;
 import org.example.dao.CurrencyDao;
 import org.example.dao.CurrencyDaoImpl;
 import org.example.dto.CurrencyDto;
-import org.example.model.ApiError;
 import org.example.model.Currency;
+import org.example.model.exception.ApiError;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +29,6 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setReqAndResp(req, resp);
         String pathInfo = req.getPathInfo();
         String resultJson;
         try {
@@ -58,7 +56,6 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setReqAndResp(req, resp);
         try {
             CurrencyDto currencyDto = objectMapper.readValue(req.getReader(), CurrencyDto.class);
             currencyDao.create(currencyDto);
@@ -70,7 +67,6 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setReqAndResp(req, resp);
         try {
             CurrencyDto currencyDto = objectMapper.readValue(req.getReader(), CurrencyDto.class);
             Integer currencyId = getCurrencyIdParameter(req);
@@ -86,7 +82,6 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setReqAndResp(req, resp);
         try {
             Integer currencyId = getCurrencyIdParameter(req);
             if (currencyId == null) {
@@ -97,12 +92,6 @@ public class CurrencyServlet extends HttpServlet {
         } catch (RuntimeException e) {
             setErrorMassageResp(resp, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    private void setReqAndResp(HttpServletRequest req, HttpServletResponse resp) throws UnsupportedEncodingException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        req.setCharacterEncoding("UTF-8");
     }
 
     private Integer getCurrencyIdParameter(HttpServletRequest req) {
