@@ -15,5 +15,5 @@ create table if not exists exchange_rates
     rate               decimal(6),
     foreign key (base_currency_id) references currencies (id),
     foreign key (target_currency_id) references currencies (id),
-    constraint check_base_id_and check ( base_currency_id != target_currency_id)
+    constraint check_base_id_and_target_id check ( base_currency_id != target_currency_id)
 );
