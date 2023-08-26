@@ -2,11 +2,10 @@ package org.example.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.ObjectMapperSingleton;
-import org.example.dao.CurrencyDao;
-import org.example.dao.CurrencyDaoImpl;
 import org.example.dto.CurrencyDto;
 import org.example.model.Currency;
 import org.example.model.exception.ApiError;
+import org.example.service.CurrencyService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,12 +17,12 @@ import java.util.List;
 
 @WebServlet("/currencies/*")
 public class CurrencyServlet extends HttpServlet {
-    private CurrencyDao currencyDao;
+    private CurrencyService currencyService;
     private ObjectMapper objectMapper;
 
     @Override
     public void init() {
-        currencyDao = CurrencyDaoImpl.getInstance();
+        currencyService = CurrencyService.getInstance();
         objectMapper = ObjectMapperSingleton.getInstance();
     }
 
@@ -33,14 +32,14 @@ public class CurrencyServlet extends HttpServlet {
         String resultJson;
         try {
             if (pathInfo == null) {
-                List<Currency> foundCurrencies = currencyDao.getAll();
+                List<Currency> foundCurrencies = currencyService.getAll();
                 resultJson = objectMapper.writeValueAsString(foundCurrencies);
                 resp.getWriter().write(resultJson);
             } else {
                 String[] pathParts = pathInfo.split("/");
                 if (pathParts.length > 1) {
                     String code = pathParts[1];
-                    Currency foundCurrency = currencyDao.getCurrencyByCode(code);
+                    Currency foundCurrency = currencyService.getCurrencyByCode(code);
                     if (foundCurrency != null) {
                         resultJson = objectMapper.writeValueAsString(foundCurrency);
                         resp.getWriter().write(resultJson);
@@ -58,7 +57,7 @@ public class CurrencyServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             CurrencyDto currencyDto = objectMapper.readValue(req.getReader(), CurrencyDto.class);
-            currencyDao.create(currencyDto);
+            currencyService.create(currencyDto);
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (RuntimeException e) {
             setErrorMassageResp(resp, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -71,9 +70,9 @@ public class CurrencyServlet extends HttpServlet {
             CurrencyDto currencyDto = objectMapper.readValue(req.getReader(), CurrencyDto.class);
             Integer currencyId = getCurrencyIdParameter(req);
             if (currencyId == null) {
-                setErrorMassageResp(resp, "id not found", HttpServletResponse.SC_BAD_REQUEST);
+                setErrorMassageResp(resp, "Id not found", HttpServletResponse.SC_BAD_REQUEST);
             } else {
-                currencyDao.updateById(currencyId, currencyDto);
+                currencyService.updateById(currencyId, currencyDto);
             }
         } catch (RuntimeException e) {
             setErrorMassageResp(resp, e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
@@ -85,9 +84,11 @@ public class CurrencyServlet extends HttpServlet {
         try {
             Integer currencyId = getCurrencyIdParameter(req);
             if (currencyId == null) {
-                setErrorMassageResp(resp, "id not found", HttpServletResponse.SC_BAD_REQUEST);
+                setErrorMassageResp(resp,
+                        "Id not found in the request path parameter",
+                        HttpServletResponse.SC_BAD_REQUEST);
             } else {
-                currencyDao.deleteById(currencyId);
+                currencyService.deleteById(currencyId);
             }
         } catch (RuntimeException e) {
             setErrorMassageResp(resp, e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

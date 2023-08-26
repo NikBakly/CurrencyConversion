@@ -27,7 +27,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void create(CurrencyDto currencyDto) throws RuntimeException {
+    public void create(CurrencyDto currencyDto) throws InternalServerErrorException {
         String insertQuery = "INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)";
         try (Connection connection = DatabaseConnector.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -45,7 +45,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void updateById(Integer id, CurrencyDto currencyDto) throws RuntimeException {
+    public void updateById(Integer id, CurrencyDto currencyDto) throws InternalServerErrorException {
 
 
         String updateQuery = "UPDATE currencies SET code = ?, full_name = ?, sign = ? WHERE id = ?";
@@ -59,16 +59,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
             int rowsAffected = preparedStatement.executeUpdate();
             logger.debug(rowsAffected > 0 ? "Currency updated successfully" : "Failed to update currency");
 
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when updating currency");
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
-    public Currency getCurrencyByCode(String code) throws RuntimeException {
+    public Currency getCurrencyByCode(String code) throws NotFoundException, InternalServerErrorException {
         String getByCodeQuery = "SELECT * FROM currencies WHERE code = ?";
         Currency foundCurrency;
 
@@ -96,7 +94,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public Currency getCurrencyById(Integer id) throws RuntimeException {
+    public Currency getCurrencyById(Integer id) throws NotFoundException, InternalServerErrorException {
         String getByCodeQuery = "SELECT * FROM currencies WHERE id = ?";
         Currency foundCurrency;
 
@@ -124,7 +122,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public List<Currency> getAll() throws RuntimeException {
+    public List<Currency> getAll() throws InternalServerErrorException {
         String getByCodeQuery = "SELECT * FROM currencies";
         List<Currency> foundCurrencies = new ArrayList<>();
 
@@ -147,29 +145,19 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void deleteById(Integer id) throws RuntimeException {
-        String deleteExchangeRateByCurrencyIdQuery = "DELETE FROM exchange_rates WHERE base_currency_id = ? OR target_currency_id = ?";
+    public void deleteById(Integer id) throws NotFoundException, InternalServerErrorException {
         String deleteCurrencyByIdQuery = "DELETE FROM currencies WHERE id = ? ";
 
-        try (Connection connection = DatabaseConnector.getConnection()) {
-            try (PreparedStatement preparedExchangeRateStatement = connection.prepareStatement(deleteExchangeRateByCurrencyIdQuery)) {
-                preparedExchangeRateStatement.setInt(1, id);
-                preparedExchangeRateStatement.setInt(2, id);
-                preparedExchangeRateStatement.executeQuery();
-            } catch (SQLException e) {
-                logger.error("Error when deleting currency from exchangeRate");
-                throw new InternalServerErrorException("Error when deleting currency from exchangeRate");
-            }
+        try (Connection connection = DatabaseConnector.getConnection();
+             PreparedStatement preparedCurrencyStatement = connection.prepareStatement(deleteCurrencyByIdQuery)) {
 
-            try (PreparedStatement preparedCurrencyStatement = connection.prepareStatement(deleteCurrencyByIdQuery)) {
-                preparedCurrencyStatement.setInt(1, id);
-                int rowsAffected = preparedCurrencyStatement.executeUpdate();
-                if (rowsAffected > 0) {
-                    logger.debug("Currency with id={} deleted successfully", id);
-                } else {
-                    logger.debug("Failed to delete currency with id={}", id);
-                    throw new NotFoundException(String.format("Failed to delete currency with id=%d", id));
-                }
+            preparedCurrencyStatement.setInt(1, id);
+            int rowsAffected = preparedCurrencyStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                logger.debug("Currency with id={} deleted successfully", id);
+            } else {
+                logger.debug("Failed to delete currency with id={}", id);
+                throw new NotFoundException(String.format("Failed to delete currency with id=%d", id));
             }
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when deleting currency");

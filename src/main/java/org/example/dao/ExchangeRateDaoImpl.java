@@ -31,9 +31,9 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
     }
 
     @Override
-    public void create(ExchangeRateDto exchangeRateDto) throws RuntimeException {
+    public void create(ExchangeRateDto exchangeRateDto) throws ConflictException, InternalServerErrorException {
         int baseCurrencyId = exchangeRateDto.getBaseCurrency().getId();
-        int targetCurrencyId = exchangeRateDto.getBaseCurrency().getId();
+        int targetCurrencyId = exchangeRateDto.getTargetCurrency().getId();
 
         try {
             currencyDao.getCurrencyById(baseCurrencyId);
@@ -59,7 +59,8 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
     }
 
     @Override
-    public void updateById(Integer id, ExchangeRateDto exchangeRateDto) throws RuntimeException {
+    public void updateById(Integer id, ExchangeRateDto exchangeRateDto)
+            throws ConflictException, InternalServerErrorException, NotFoundException {
         int baseCurrencyId = exchangeRateDto.getBaseCurrency().getId();
         int targetCurrencyId = exchangeRateDto.getTargetCurrency().getId();
 
@@ -81,13 +82,17 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
             preparedStatement.setInt(2, targetCurrencyId);
             preparedStatement.setDouble(3, exchangeRateDto.getRate());
             preparedStatement.setInt(4, id);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            logger.debug(rowsAffected > 0 ? "ExchangeRate updated successfully" : "Failed to update exchangeRate");
         } catch (SQLException | ClassNotFoundException e) {
+            logger.error("Error when updating exchangeRate");
             throw new InternalServerErrorException(e);
         }
     }
 
     @Override
-    public ExchangeRate getByCodes(String codes) throws RuntimeException {
+    public ExchangeRate getByCodes(String codes) throws NotFoundException, InternalServerErrorException {
         String baseCurrencyCode = codes.substring(0, 3);
         String targetCurrencyCode = codes.substring(3);
         Currency baseCurrency;
@@ -113,8 +118,8 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
                 );
                 logger.debug("ExchangeRate with codes={} successfully found", codes);
             } else {
-                logger.debug("ExchangeRate with id={} not found", codes);
-                throw new NotFoundException(String.format("ExchangeRate with id=%s not found", codes));
+                logger.debug("ExchangeRate with codes={} not found", codes);
+                throw new NotFoundException(String.format("ExchangeRate with codes=%s not found", codes));
             }
 
             return foundExchangeRate;
@@ -125,7 +130,7 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
     }
 
     @Override
-    public ExchangeRate getById(Integer id) throws RuntimeException {
+    public ExchangeRate getById(Integer id) throws NotFoundException, InternalServerErrorException {
         String getByIdQuery = "SELECT * FROM exchange_rates WHERE id = ?";
         ExchangeRate foundExchangeRate;
 
@@ -186,7 +191,7 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
     }
 
     @Override
-    public void deleteById(Integer id) throws InternalServerErrorException {
+    public void deleteById(Integer id) throws InternalServerErrorException, NotFoundException {
         String deleteByIdQuery = "DELETE FROM exchange_rates WHERE id = ?";
 
         try (Connection connection = DatabaseConnector.getConnection();
@@ -202,6 +207,20 @@ public class ExchangeRateDaoImpl implements ExchangeRateDao {
         } catch (SQLException | ClassNotFoundException e) {
             logger.error("Error when deleting currency");
             throw new InternalServerErrorException(e);
+        }
+    }
+
+    @Override
+    public void deleteByCurrencyId(Integer id) {
+        String deleteExchangeRateByCurrencyIdQuery = "DELETE FROM exchange_rates WHERE base_currency_id = ? OR target_currency_id = ?";
+        try (Connection connection = DatabaseConnector.getConnection();
+             PreparedStatement preparedExchangeRateStatement = connection.prepareStatement(deleteExchangeRateByCurrencyIdQuery)) {
+
+            preparedExchangeRateStatement.setInt(1, id);
+            preparedExchangeRateStatement.setInt(2, id);
+            preparedExchangeRateStatement.executeQuery();
+        } catch (SQLException | ClassNotFoundException e) {
+            logger.error("Error when deleting currency from exchangeRate");
         }
     }
 }

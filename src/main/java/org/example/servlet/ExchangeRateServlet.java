@@ -10,7 +10,6 @@ import org.example.model.exception.InternalServerErrorException;
 import org.example.model.exception.NotFoundException;
 import org.example.service.ExchangeRateService;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -75,7 +74,7 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             ExchangeRateDto exchangeRateDto = objectMapper.readValue(req.getReader(), ExchangeRateDto.class);
             Integer exchangeRateId = getExchangeIdParameter(req);

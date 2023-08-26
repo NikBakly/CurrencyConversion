@@ -17,4 +17,6 @@ public interface ExchangeRateDao {
     List<ExchangeRate> getAll();
 
     void deleteById(Integer id);
+
+    void deleteByCurrencyId(Integer id);
 }
