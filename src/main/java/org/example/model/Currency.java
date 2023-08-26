@@ -15,6 +15,9 @@ public class Currency implements Serializable {
         this.sign = sign;
     }
 
+    public Currency() {
+    }
+
     public Integer getId() {
         return id;
     }
