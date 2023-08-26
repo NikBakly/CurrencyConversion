@@ -75,7 +75,7 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             ExchangeRateDto exchangeRateDto = objectMapper.readValue(req.getReader(), ExchangeRateDto.class);
             Integer exchangeRateId = getExchangeIdParameter(req);

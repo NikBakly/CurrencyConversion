@@ -20,13 +20,13 @@ public class ExchangeServlet extends HttpServlet {
     private ObjectMapper objectMapper;
 
     @Override
-    public void init() throws ServletException {
+    public void init() {
         objectMapper = ObjectMapperSingleton.getInstance();
         exchangeRateService = ExchangeRateService.getInstance();
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String fromCurrencyCode = req.getParameter("from");
         String toCurrencyCode = req.getParameter("to");
         String amountStr = req.getParameter("amount");
