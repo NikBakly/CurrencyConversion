@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
+    <modelVersion>4.0.0</modelVersion>
     <groupId>org.example</groupId>
     <artifactId>CurrencyConversion</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -19,6 +19,8 @@
         <slf4j-apislf4j-api.version>2.0.7</slf4j-apislf4j-api.version>
         <logback-classic.version>1.4.9</logback-classic.version>
         <jackson-databind.vesion>2.15.2</jackson-databind.vesion>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
         <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.1</checkstyle.version>
         <spotbugs-maven-plugin.version>4.7.3.5</spotbugs-maven-plugin.version>
@@ -59,8 +61,17 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>${maven-war-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
